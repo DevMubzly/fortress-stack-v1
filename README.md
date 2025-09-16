@@ -36,8 +36,6 @@ docker compose up
 - **API Backend**: [http://localhost:5000](http://localhost:5000)
 - **Demo Application**: [http://localhost:1000](http://localhost:1000)
 - **Admin Dashboard**: [http://localhost:3000](http://localhost:3000)
-- **Grafana**: [http://localhost:4000](http://localhost:4000)
-- **Prometheus**: [http://localhost:9090](http://localhost:9090)
 
 ---
 
