@@ -26,7 +26,7 @@ import threading
 load_dotenv()
 #configurations
 DB_URL = os.getenv("DB_URL", "sqlite:///./fortress-stack.db")
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", "secret12345")
 ALGORITHM = "HS256"
 MODEL_SERVER_URL = os.getenv("MODEL_SERVER_URL", "http://localhost:8000/generate")  # default to model server port
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
@@ -34,7 +34,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # fail fast if secret is not provided
 if not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY environment variable is required")
+    raise RuntimeError("SECRET_KEY environment variable is required (set any random key in development)")
 
 #database setup 
 engine = sa.create_engine(DB_URL, connect_args={"check_same_thread": False})

@@ -1,6 +1,9 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap'); */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 /* Fortress - Professional Light Theme */
 
@@ -171,4 +174,24 @@
   50% {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.6);
   }
+}
+
+
+@font-face {
+  font-family: 'Source Code Pro';
+  src: url('./fonts/SourceCodePro-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Source Code Pro';
+  src: url('./fonts/SourceCodePro-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Source Code Pro',
+    monospace;
 }

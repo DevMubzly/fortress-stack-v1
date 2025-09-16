@@ -48,6 +48,8 @@ services:
     depends_on:
       - fastapi
 
+  #Grafana setup is to be implemented later once the MVP is built
+
   # grafana:
   #   image: grafana/grafana:latest
   #   container_name: fortress-grafana
