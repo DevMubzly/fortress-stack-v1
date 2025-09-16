@@ -1,0 +1,151 @@
+[
+    {
+        "id": "1",
+        "repo_id": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        "name": "TinyLlama 1.1B Chat",
+        "description": "Lightweight 1.1B chat/instruction model (Apache-2.0). Good default for CPU/GPU.",
+        "size_human": "2.2 GB",
+        "downloads_hub": "500K+",
+        "tags": [
+            "chat",
+            "instruction",
+            "pytorch"
+        ],
+        "category": "text-generation",
+        "gated": false
+    },
+    {
+        "id": "2",
+        "repo_id": "Qwen/Qwen2.5-0.5B-Instruct",
+        "name": "Qwen2.5 0.5B Instruct",
+        "description": "Compact 0.5B instruct model; fast and low‑memory.",
+        "size_human": "1.1 GB",
+        "downloads_hub": "100K+",
+        "tags": [
+            "instruct",
+            "chat",
+            "pytorch"
+        ],
+        "category": "text-generation",
+        "gated": false
+    },
+    {
+        "id": "3",
+        "repo_id": "Qwen/Qwen2.5-1.5B-Instruct",
+        "name": "Qwen2.5 1.5B Instruct",
+        "description": "Balanced 1.5B instruct model with solid quality vs. speed.",
+        "size_human": "3.1 GB",
+        "downloads_hub": "200K+",
+        "tags": [
+            "instruct",
+            "chat",
+            "pytorch"
+        ],
+        "category": "text-generation",
+        "gated": false
+    },
+    {
+        "id": "4",
+        "repo_id": "Qwen/Qwen2.5-3B-Instruct",
+        "name": "Qwen2.5 3B Instruct",
+        "description": "Stronger 3B instruct model; needs more RAM/VRAM.",
+        "size_human": "6.0 GB",
+        "downloads_hub": "200K+",
+        "tags": [
+            "instruct",
+            "chat",
+            "pytorch"
+        ],
+        "category": "text-generation",
+        "gated": false
+    },
+    {
+        "id": "5",
+        "repo_id": "google/flan-t5-large",
+        "name": "FLAN‑T5 Large",
+        "description": "0.78B text‑to‑text model for tasks like QA, summarize, translate.",
+        "size_human": "2.8 GB",
+        "downloads_hub": "1.8M+",
+        "tags": [
+            "text2text",
+            "seq2seq",
+            "pytorch"
+        ],
+        "category": "text-generation",
+        "gated": false
+    },
+    {
+        "id": "6",
+        "repo_id": "intfloat/e5-base-v2",
+        "name": "E5 Base v2",
+        "description": "General‑purpose English embeddings (dense retrieval, RAG).",
+        "size_human": "440 MB",
+        "downloads_hub": "1M+",
+        "tags": [
+            "embeddings",
+            "retrieval",
+            "feature-extraction"
+        ],
+        "category": "feature-extraction",
+        "gated": false
+    },
+    {
+        "id": "7",
+        "repo_id": "BAAI/bge-base-en-v1.5",
+        "name": "BGE Base EN v1.5",
+        "description": "High‑quality English embeddings for search and RAG.",
+        "size_human": "410 MB",
+        "downloads_hub": "3M+",
+        "tags": [
+            "embeddings",
+            "sentence-transformers",
+            "feature-extraction"
+        ],
+        "category": "feature-extraction",
+        "gated": false
+    },
+    {
+        "id": "8",
+        "repo_id": "sentence-transformers/all-MiniLM-L6-v2",
+        "name": "all‑MiniLM‑L6‑v2",
+        "description": "Fast universal sentence embeddings; tiny and reliable.",
+        "size_human": "90 MB",
+        "downloads_hub": "5M+",
+        "tags": [
+            "embeddings",
+            "sentence-similarity"
+        ],
+        "category": "feature-extraction",
+        "gated": false
+    },
+    {
+        "id": "9",
+        "repo_id": "openai/clip-vit-base-patch32",
+        "name": "CLIP ViT‑B/32",
+        "description": "Vision‑language model for image‑text similarity and zero‑shot.",
+        "size_human": "600 MB",
+        "downloads_hub": "3M+",
+        "tags": [
+            "vision",
+            "multimodal",
+            "clip"
+        ],
+        "category": "multimodal",
+        "gated": false
+    },
+    {
+        "id": "10",
+        "repo_id": "google/gemma-2-2b-it",
+        "name": "Gemma 2‑2B IT",
+        "description": "Instruction‑tuned 2B model; stronger quality, gated license.",
+        "size_human": "5.0 GB",
+        "downloads_hub": "100K+",
+        "tags": [
+            "instruct",
+            "chat",
+            "transformer"
+        ],
+        "category": "text-generation",
+        "gated": true
+    }
+]

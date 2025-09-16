@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 5s
+
+rule_files:
+  - rules\alerts.yml
+
+scrape_configs:
+  - job_name: "fortress-gateway"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["localhost:5000"]
+
+  - job_name: "model-server"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["localhost:8000"]

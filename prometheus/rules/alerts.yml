@@ -1,0 +1,28 @@
+groups:
+  - name: fortress-alerts
+    rules:
+      - alert: GatewayHighErrorRate
+        expr: |
+          sum(rate(fs_http_requests_total{route="/generate",code!~"2.."}[5m]))
+            / clamp_min(sum(rate(fs_http_requests_total{route="/generate"}[5m])), 1)
+            > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Gateway error rate > 5% (5m)"
+      - alert: GatewayHighP95Latency
+        expr: |
+          histogram_quantile(0.95, sum(rate(fs_generate_latency_seconds_bucket[5m])) by (le)) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "p95 latency > 1s (10m)"
+      - alert: TargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "A scrape target is DOWN"

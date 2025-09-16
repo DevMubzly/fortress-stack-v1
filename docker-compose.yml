@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  model-server:
+    build: ./model-server
+    container_name: fortress-model-server
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_BASE_DIR: "/models"
+    volumes:
+      - ./model-server/models:/models
+
+  fastapi:
+    build: ./fastapi
+    container_name: fortress-fastapi
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./fastapi/data:/app/data # persists SQLite DB
+    environment:
+      DB_URL: "sqlite:///./data/fortress-stack.db"
+      MODEL_SERVER_URL: "http://model-server:8000/generate"
+    depends_on:
+      - model-server
+
+  demo-application:
+    build: ./demo-application
+    container_name: fortress-demo-application
+    ports:
+      - "1000:1000"
+    depends_on:
+      - fastapi
+
+  admin-dash:
+    build: ./admin-dash
+    container_name: fortress-admin-dash
+    ports:
+      - "3000:3000"
+    depends_on:
+      - fastapi
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fortress-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - fastapi
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: fortress-grafana
+  #   ports:
+  #     - "4000:3000"
+  #   depends_on:
+  #     - prometheus

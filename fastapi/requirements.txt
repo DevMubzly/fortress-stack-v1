@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+httpx
+sqlalchemy
+psycopg2-binary
+prometheus-client
+passlib[bcrypt]
+python-jose[cryptography]
+python-dotenv

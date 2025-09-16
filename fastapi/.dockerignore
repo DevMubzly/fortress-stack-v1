@@ -1,0 +1,21 @@
+# Env files
+.env
+*.env
+
+# SQLite DB files
+fortress-stack.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Python caches/venv
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Misc
+.DS_Store
+.git
+.gitignore
