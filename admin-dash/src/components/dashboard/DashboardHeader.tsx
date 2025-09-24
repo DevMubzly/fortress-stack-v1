@@ -202,7 +202,7 @@ export function DashboardHeader() {
         </DropdownMenu>
 
         {/* Notifications */}
-        <Popover>
+        {/* <Popover>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="sm" className="relative">
               <Bell className="h-4 w-4" />
@@ -234,7 +234,7 @@ export function DashboardHeader() {
               </Button>
             </div>
           </PopoverContent>
-        </Popover>
+        </Popover> */}
 
         {/* User Menu */}
         <DropdownMenu>
