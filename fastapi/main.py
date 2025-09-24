@@ -6,6 +6,7 @@ from fastapi import FastAPI, Header, HTTPException, Depends, Response, Cookie, B
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+from sqlalchemy import cast, case, Integer
 import httpx
 from sqlalchemy.orm import sessionmaker, declarative_base
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
@@ -20,8 +21,6 @@ import psutil
 from sqlalchemy.engine import Engine
 from pathlib import Path
 import json
-from huggingface_hub import snapshot_download
-import threading
 
 load_dotenv()
 #configurations
@@ -851,6 +850,180 @@ def requests_24h(ctx=Depends(get_auth_context), db: Session = Depends(get_db)):
 
     return {"measured_at": int(time.time()), "points": points}
 
+@app.get("/admin/stats/requests/24h")
+def get_request_trends(ctx=Depends(get_auth_context), db: Session = Depends(get_db)):
+    """
+    Returns total requests per 4-hour bucket for the last 24 hours for the current company.
+    """
+    company_id = ctx["company_id"]
+    now = datetime.utcnow().replace(minute=0, second=0, microsecond=0)
+    since = now - timedelta(hours=23)
+    yesterday_since = since - timedelta(days=1)
+    yesterday_until = now - timedelta(days=1)
+
+    # Get today's data (last 24h)
+    today_rows = (
+        db.query(sa.func.count(Usage.id))
+        .join(APIKey, Usage.api_key_id == APIKey.id)
+        .join(Project, APIKey.project_id == Project.id)
+        .filter(Project.company_id == company_id, Usage.used_at >= since)
+        .scalar()
+    )
+
+    # Get yesterday's data (previous 24h)
+    yesterday_rows = (
+        db.query(sa.func.count(Usage.id))
+        .join(APIKey, Usage.api_key_id == APIKey.id)
+        .join(Project, APIKey.project_id == Project.id)
+        .filter(Project.company_id == company_id, Usage.used_at >= yesterday_since, Usage.used_at < yesterday_until)
+        .scalar()
+    )
+
+    # SQLite/Postgres compatible bucket by hour
+    dialect = db.get_bind().dialect.name
+    if dialect == "sqlite":
+        bucket = sa.func.strftime("%Y-%m-%d %H:00:00", Usage.used_at)
+    else:
+        bucket = sa.func.date_trunc("hour", Usage.used_at)
+
+    rows = (
+        db.query(bucket.label("h"), sa.func.count(Usage.id).label("c"))
+        .join(APIKey, Usage.api_key_id == APIKey.id)
+        .join(Project, APIKey.project_id == Project.id)
+        .filter(Project.company_id == company_id, Usage.used_at >= since)
+        .group_by("h")
+        .order_by("h")
+        .all()
+    )
+
+    # Map results to dict keyed by hour
+    by_hour = {}
+    for r in rows:
+        if dialect == "sqlite":
+            key = str(r.h)[:13]  # 'YYYY-MM-DD HH'
+        else:
+            key = (r.h if isinstance(r.h, datetime) else datetime.fromisoformat(str(r.h))).isoformat()[:13]
+        by_hour[key.replace(" ", "T")] = int(r.c)
+
+    # Build 4-hour buckets for chart
+    points = []
+    for i in range(0, 24, 4):
+        total = 0
+        label = (now - timedelta(hours=23 - i)).strftime("%H:00")
+        for j in range(i, i + 4):
+            t = now - timedelta(hours=23 - j)
+            key = t.isoformat()[:13]
+            total += by_hour.get(key, 0)
+        points.append({"time": label, "requests": total})
+
+    return {
+        "points": [],  # your chart data here
+        "today_total": today_rows or 0,
+        "yesterday_total": yesterday_rows or 0
+    }
+
+@app.get("/admin/stats/latency/distribution")
+def get_latency_distribution(ctx=Depends(get_auth_context), db: Session = Depends(get_db)):
+    """
+    Returns latency distribution buckets and P95 for the current company in the last 24h.
+    """
+    company_id = ctx["company_id"]
+    now = datetime.utcnow()
+    since = now - timedelta(hours=24)
+
+    # Query all latencies for the last 24h
+    rows = (
+        db.query(Usage.latency)
+        .join(APIKey, Usage.api_key_id == APIKey.id)
+        .join(Project, APIKey.project_id == Project.id)
+        .filter(Project.company_id == company_id, Usage.used_at >= since)
+        .all()
+    )
+    latencies = [r[0] for r in rows if r[0] is not None]
+
+    # Bucket ranges (ms)
+    buckets = [
+        (0, 50), (51, 100), (101, 200), (201, 400), (401, 800), (801, 1600), (1601, 3200), (3201, 10000)
+    ]
+    bucket_labels = [
+        "0-50ms", "51-100ms", "101-200ms", "201-400ms", "401-800ms", "801-1600ms", "1601-3200ms", "3200ms+"
+    ]
+    bucket_counts = [0] * len(buckets)
+
+    for latency in latencies:
+        placed = False
+        for i, (low, high) in enumerate(buckets):
+            if low <= latency <= high:
+                bucket_counts[i] += 1
+                placed = True
+                break
+        if not placed and latency > buckets[-1][1]:
+            bucket_counts[-1] += 1
+
+    latency_data = [
+        {"range": label, "count": count}
+        for label, count in zip(bucket_labels, bucket_counts)
+    ]
+
+    # Calculate P95
+    p95 = 0
+    if latencies:
+        latencies_sorted = sorted(latencies)
+        idx = int(0.95 * len(latencies_sorted)) - 1
+        p95 = int(latencies_sorted[max(idx, 0)])
+
+    return {
+        "latency_data": latency_data,
+        "p95": p95
+    }
+
+from fastapi import Depends
+from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
+
+@app.get("/admin/stats/tokens-per-key")
+def get_tokens_per_key(ctx=Depends(get_auth_context), db: Session = Depends(get_db)):
+    """
+    Returns token usage per API key and error rate for the current company in the last 24h.
+    """
+    company_id = ctx["company_id"]
+    now = datetime.utcnow()
+    since = now - timedelta(hours=24)
+
+    # Token usage per key
+    rows = (
+        db.query(APIKey.key, sa.func.sum(Usage.tokens).label("tokens"))
+        .join(Project, APIKey.project_id == Project.id)
+        .join(Usage, Usage.api_key_id == APIKey.id)
+        .filter(Project.company_id == company_id, Usage.used_at >= since)
+        .group_by(APIKey.key)
+        .all()
+    )
+    tokens_per_key = [{"key": r[0], "tokens": int(r[1] or 0)} for r in rows]
+
+    # Error rate
+    total_requests = (
+        db.query(sa.func.count(Usage.id))
+        .join(APIKey, Usage.api_key_id == APIKey.id)
+        .join(Project, APIKey.project_id == Project.id)
+        .filter(Project.company_id == company_id, Usage.used_at >= since)
+        .scalar()
+    )
+    error_count = (
+        db.query(sa.func.count(Usage.id))
+        .join(APIKey, Usage.api_key_id == APIKey.id)
+        .join(Project, APIKey.project_id == Project.id)
+        .filter(Project.company_id == company_id, Usage.used_at >= since, Usage.status == "error")
+        .scalar()
+    )
+    error_rate_percent = round((error_count / total_requests) * 100, 2) if total_requests else 0
+
+    return {
+        "tokens_per_key": tokens_per_key,
+        "error_rate_percent": error_rate_percent,
+        "error_count": error_count
+    }
+
 @app.get("/admin/metrics/latency/histogram")
 def latency_histogram(ctx=Depends(get_auth_context), db: Session = Depends(get_db)):
     company_id = ctx["company_id"]
@@ -1012,82 +1185,3 @@ def delete_company_user(user_id: int, ctx=Depends(get_auth_context), db: Session
     if getattr(result, "rowcount", 0) == 0:
         raise HTTPException(status_code=404, detail="User not found")
     return {"ok": True}
-
-# Curated models file on disk
-BASE_DIR = Path(__file__).parent
-CURATED_DIR = BASE_DIR / "data"
-CURATED_DIR.mkdir(exist_ok=True)
-CURATED_MODELS_FILE = CURATED_DIR / "curated_models.json"
-
-MODELS_DIR = BASE_DIR / "models"
-MODELS_DIR.mkdir(exist_ok=True)
-
-download_jobs = {}  # job_id -> {"repo_id": ..., "status": ..., "percent": ..., "error": ...}
-
-def _download_worker(job_id, repo_id, local_dir):
-    try:
-        download_jobs[job_id]["status"] = "running"
-        # Simulate progress (replace with real chunked download for production)
-        for i in range(1, 101):
-            time.sleep(0.1)  # simulate work
-            download_jobs[job_id]["percent"] = i
-        # Real download
-        snapshot_download(
-            repo_id=repo_id,
-            local_dir=str(local_dir),
-            local_dir_use_symlinks=False,
-            resume_download=True,
-        )
-        download_jobs[job_id]["status"] = "done"
-        download_jobs[job_id]["percent"] = 100
-        meta = {
-            "id": repo_id,
-            "repo_id": repo_id,
-            "name": repo_id,
-            "size": "",
-            "downloadedAt": time.strftime("%Y-%m-%d"),
-            "status": "ready",
-            "usage": "0 requests"
-        }
-        meta_path = local_dir / "meta.json"
-        with meta_path.open("w", encoding="utf-8") as f:
-            json.dump(meta, f)
-    except Exception as e:
-        download_jobs[job_id]["status"] = "error"
-        download_jobs[job_id]["error"] = str(e)
-
-@app.get("/models/curated")
-def get_curated_models(ctx=Depends(get_auth_context)):
-    try:
-        if not CURATED_MODELS_FILE.exists():
-            raise FileNotFoundError("curated_models.json not found")
-        with CURATED_MODELS_FILE.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load curated models: {e}")
-
-@app.post("/models/download")
-def download_model(req: DownloadRequest, ctx=Depends(get_auth_context)):
-    repo_id = req.repo_id.strip()
-    if not repo_id:
-        raise HTTPException(status_code=400, detail="repo_id required")
-    local_dir = MODELS_DIR / repo_id.replace("/", "__")
-    local_dir.mkdir(exist_ok=True)
-    job_id = str(uuid.uuid4())
-    download_jobs[job_id] = {
-        "repo_id": repo_id,
-        "status": "queued",
-        "percent": 0,
-        "error": None
-    }
-    t = threading.Thread(target=_download_worker, args=(job_id, repo_id, local_dir))
-    t.start()
-    return {"ok": True, "job_id": job_id}
-
-@app.get("/models/jobs/{job_id}")
-def get_download_job(job_id: str, ctx=Depends(get_auth_context)):
-    job = download_jobs.get(job_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return job

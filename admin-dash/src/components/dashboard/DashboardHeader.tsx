@@ -1,6 +1,5 @@
-import { Bell, Search, Settings, User, LogOut, Brain, ChevronDown, CheckCircle, AlertTriangle, Info } from "lucide-react";
+import { Bell, Settings, User, LogOut, Brain, ChevronDown, CheckCircle, AlertTriangle, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -46,11 +45,6 @@ function classifyStatus(h: Health | null): { status: Status; label: string } {
 }
 
 export function DashboardHeader() {
-  const currentModel = "microsoft/DialoGPT-medium";
-  const downloadedModels = [
-    "microsoft/DialoGPT-medium",
-    "sentence-transformers/all-MiniLM-L6-v2"
-  ];
   const navigate = useNavigate();
   const [username, setUsername] = useState("Admin User");
   const [health, setHealth] = useState<Health | null>(null);
@@ -59,15 +53,15 @@ export function DashboardHeader() {
     {
       id: 1,
       type: "success",
-      title: "Model Downloaded",
-      message: "BERT-base-uncased has been successfully downloaded",
+      title: "Model Ready",
+      message: "TinyLlama is loaded and ready to use",
       time: "2 minutes ago"
     },
     {
       id: 2,
       type: "warning",
-      title: "High GPU Usage",
-      message: "GPU utilization is at 95%. Consider optimizing your workload",
+      title: "High CPU Usage",
+      message: "CPU utilization is at 95%. Consider optimizing your workload",
       time: "15 minutes ago"
     },
     {
@@ -95,13 +89,6 @@ export function DashboardHeader() {
       default:
         return <Info className="h-4 w-4 text-primary" />;
     }
-  };
-
-  const handleModelLoad = (modelName: string) => {
-    toast({
-      title: "Model Loading",
-      description: `Loading ${modelName}...`,
-    });
   };
 
   useEffect(() => {
@@ -173,9 +160,6 @@ export function DashboardHeader() {
     <header className="h-16 border-b border-border bg-card flex items-center justify-between px-6 sticky top-0 z-40">
       <div className="flex items-center gap-4">
         <h1 className="text-2xl font-bold text-foreground">Overview of Activities</h1>
-        {/* <p className="text-sm text-muted-foreground hidden md:block">
-          Comprehensive dashboard for your secure AI infrastructure
-        </p> */}
       </div>
 
       <div className="flex items-center gap-4">
@@ -184,12 +168,17 @@ export function DashboardHeader() {
           {label}
         </Badge>
 
-        {/* Loaded Model Indicator */}
+        {/* Model Dropdown - Only TinyLlama */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center gap-2 bg-background">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2 bg-background"
+              disabled
+            >
               <Brain className="h-4 w-4" />
-              <span className="hidden md:inline text-sm">{currentModel}</span>
+              <span className="hidden md:inline text-sm">TinyLlama</span>
               <span className="md:hidden text-sm">Model</span>
               <ChevronDown className="h-3 w-3" />
             </Button>
@@ -197,21 +186,14 @@ export function DashboardHeader() {
           <DropdownMenuContent align="end" className="w-64 bg-background border shadow-lg z-50">
             <DropdownMenuLabel>Switch Model</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {downloadedModels.map((model) => (
-              <DropdownMenuItem 
-                key={model}
-                onClick={() => handleModelLoad(model)}
-                className={`cursor-pointer ${model === currentModel ? 'bg-muted' : ''}`}
-              >
-                <Brain className="mr-2 h-4 w-4" />
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{model}</span>
-                  {model === currentModel && (
-                    <span className="text-xs text-muted-foreground">Currently loaded</span>
-                  )}
-                </div>
-              </DropdownMenuItem>
-            ))}
+            <DropdownMenuItem disabled className="cursor-not-allowed flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary font-bold">
+              <Brain className="mr-2 h-4 w-4" />
+              <div className="flex flex-col flex-1">
+                <span className="text-sm font-medium">TinyLlama</span>
+                <span className="text-xs text-muted-foreground">Currently loaded</span>
+              </div>
+              <CheckCircle className="h-4 w-4 text-success ml-2" />
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => navigate("/dashboard/model-hub")}>
               <span className="text-sm text-muted-foreground">Manage models...</span>
@@ -257,7 +239,7 @@ export function DashboardHeader() {
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="flex items-center gap-2">
+            <Button variant="ghost" size="lg" className="flex items-center gap-2 hover:bg-blue-100 hover:text-black">
               <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
                 <User className="h-4 w-4 text-background" />
               </div>

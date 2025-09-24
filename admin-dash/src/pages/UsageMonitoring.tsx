@@ -4,37 +4,28 @@ import { ActivityLogsPanel } from "@/components/dashboard/panels/ActivityLogsPan
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const UsageMonitoring = () => {
   const navigate = useNavigate();
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/dashboard")}
-            className="hover:bg-muted/50"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Overview
-          </Button>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold gradient-text">Usage & Monitoring</h1>
-          <p className="text-muted-foreground">
-            Track API usage metrics and monitor system activity
-          </p>
-        </div>
-
-        <div className="space-y-6">
-          <UsageMetricsPanel />
-          <ActivityLogsPanel />
-        </div>
-      </div>
+      <div className="flex flex-col items-center justify-center h-[60vh]">
+      <Card className="max-w-md w-full text-center">
+        <CardHeader>
+          <CardTitle className="text-2xl">Usage Metrics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-lg text-muted-foreground mb-2">
+            Coming soon.
+          </div>
+          <div className="text-sm text-muted-foreground">
+            Usage metrics and analytics will be available here.
+          </div>
+        </CardContent>
+      </Card>
+    </div>
     </DashboardLayout>
   );
 };

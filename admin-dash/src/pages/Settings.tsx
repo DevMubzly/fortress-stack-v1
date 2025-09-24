@@ -202,7 +202,6 @@ const Settings = () => {
                 </div>
                 
               </div>
-              <div><h1>"Kindly bare with our MVP for this project, we promise to add better role-based routing and access at a later stage. We didn't have enough time to build our solution for the hackathon"</h1></div>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Create User Form */}
@@ -356,7 +355,6 @@ const Settings = () => {
                     onChange={(e) => setCompanySettings({ ...companySettings, apiTimeout: e.target.value })}
                   />
                 </div> */}
-                <h1>"Kindly bare with our MVP for this project, we promise to add more configurations at a later stage."</h1>
               </div>
             </CardContent>
           </Card>

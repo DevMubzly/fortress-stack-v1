@@ -420,7 +420,7 @@ export function EnhancedOverviewPanel() {
                   key={item.title}
                   type="button"
                   variant="outline"
-                  className="h-auto p-4 flex flex-col items-start text-left hover:shadow-md transition-all duration-200"
+                  className="h-auto p-4 flex flex-col items-start text-left hover:shadow-md hover:bg-blue-50 transition-all duration-200"
                   onClick={() => navigate(item.path)}
                   aria-label={item.title}
                   title={item.description}

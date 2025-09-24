@@ -4,8 +4,8 @@ import { SignupForm } from "@/components/auth/SignupForm";
 const Signup = () => {
   return (
     <AuthLayout
-      title="Get Started with Fortress"
-      subtitle="Create your admin account"
+      title="Create an admin account"
+      subtitle="Fill in the details below"
     >
       <SignupForm />
     </AuthLayout>
